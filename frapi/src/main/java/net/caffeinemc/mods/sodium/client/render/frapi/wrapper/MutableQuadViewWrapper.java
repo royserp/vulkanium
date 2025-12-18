@@ -140,7 +140,7 @@ public class MutableQuadViewWrapper extends QuadViewWrapper implements QuadEmitt
 
     @Override
     public QuadEmitter copyFrom(QuadView quad) {
-        mutableQuad.copyFrom((QuadViewImpl) quad);
+        mutableQuad.copyFrom(((QuadViewWrapper) quad).getOriginal());
         return this;
     }
 
