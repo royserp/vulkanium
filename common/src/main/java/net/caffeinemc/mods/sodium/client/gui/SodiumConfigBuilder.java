@@ -140,7 +140,7 @@ public class SodiumConfigBuilder implements ConfigEntryPoint {
     }
 
     private OptionPageBuilder buildGeneralPage(ConfigBuilder builder) {
-        var generalPage = builder.createOptionPage().setName(Component.literal("General"));
+        var generalPage = builder.createOptionPage().setName(Component.translatable("sodium.options.pages.general"));
         generalPage.addOptionGroup(builder.createOptionGroup()
                 .addOption(
                         // TODO: make RD option respect Vanilla's >16 RD only allowed if memory >1GB constraint
@@ -266,14 +266,6 @@ public class SodiumConfigBuilder implements ConfigEntryPoint {
                 )
         );
         generalPage.addOptionGroup(builder.createOptionGroup()
-                .addOption(
-                        builder.createBooleanOption(Identifier.parse("sodium:general.view_bobbing"))
-                                .setStorageHandler(this.vanillaStorage)
-                                .setName(Component.translatable("options.viewBobbing"))
-                                .setTooltip(Component.translatable("sodium.options.view_bobbing.tooltip"))
-                                .setDefaultValue(true)
-                                .setBinding(this.vanillaOpts.bobView()::set, this.vanillaOpts.bobView()::get)
-                )
                 .addOption(
                         builder.createEnumOption(Identifier.parse("sodium:general.attack_indicator"), AttackIndicatorStatus.class)
                                 .setStorageHandler(this.vanillaStorage)
