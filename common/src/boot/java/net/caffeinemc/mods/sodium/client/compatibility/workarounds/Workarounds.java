@@ -6,11 +6,9 @@ import net.caffeinemc.mods.sodium.client.compatibility.workarounds.intel.IntelWo
 import net.caffeinemc.mods.sodium.client.compatibility.workarounds.nvidia.NvidiaWorkarounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -53,22 +51,7 @@ public class Workarounds {
         }
 
         if (operatingSystem == OsUtils.OperatingSystem.LINUX) {
-            var session = System.getenv("XDG_SESSION_TYPE");
-
-            if (session == null) {
-                LOGGER.warn("Unable to determine desktop session type because the environment variable XDG_SESSION_TYPE " +
-                        "is not set! Your user session may not be configured correctly.");
-            }
-
-            var glfwMajor = new int[1];
-            var glfwMinor = new int[1];
-            
-            GLFW.glfwGetVersion(glfwMajor, glfwMinor, null);
-
-            if (Objects.equals(session, "wayland") && !(glfwMajor[0] > 3 || glfwMajor[0] == 3 && glfwMinor[0] >= 4)) {
-                // This will also apply under Xwayland, even though the problem does not happen there
-                workarounds.add(Reference.NO_ERROR_CONTEXT_UNSUPPORTED);
-            }
+            workarounds.add(Reference.NO_ERROR_CONTEXT_UNSUPPORTED);
         }
 
         return Collections.unmodifiableSet(workarounds);
