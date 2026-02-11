@@ -32,8 +32,6 @@ public class SodiumClientMod {
 
         OPTIONS = loadConfig();
 
-        ConfigManager.registerConfigsEarly();
-
         try {
             updateFingerprint();
         } catch (Throwable t) {
