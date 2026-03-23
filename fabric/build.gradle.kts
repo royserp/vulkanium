@@ -1,6 +1,3 @@
-import net.fabricmc.loom.task.RemapJarTask
-import net.fabricmc.loom.task.RemapSourcesJarTask
-
 plugins {
     id("multiloader-platform")
 
@@ -116,34 +113,17 @@ tasks {
     }
 
     val apiJar = register<org.gradle.jvm.tasks.Jar>("apiJar") {
-        archiveClassifier.set("api-dev")
+        archiveClassifier.set("api")
         from(configurationApiModJava)
         from(sourceSets.main.get().resources)
-        destinationDirectory.set(file(project.layout.buildDirectory).resolve("devlibs"))
+        destinationDirectory.set(file(rootProject.layout.buildDirectory).resolve("api"))
     }
 
     val apiSourcesJar = register<org.gradle.jvm.tasks.Jar>("apiSourcesJar") {
-        archiveClassifier.set("api-sources-dev")
+        archiveClassifier.set("api-sources")
         from(configurationApiModSources)
         from(sourceSets.main.get().resources)
-        destinationDirectory.set(file(project.layout.buildDirectory).resolve("devlibs"))
-    }
-
-    register<RemapJarTask>("remapApiJar") {
-        dependsOn("apiJar")
-        archiveClassifier.set("api")
-        nestedJars.unset()
-        destinationDirectory.set(file(rootProject.layout.buildDirectory).resolve("api"))
-
-        inputFile.set(apiJar.flatMap { it.archiveFile })
-    }
-
-    register<RemapSourcesJarTask>("remapApiSourcesJar") {
-        dependsOn("apiSourcesJar")
-        archiveClassifier.set("api-sources")
         destinationDirectory.set(file(rootProject.layout.buildDirectory).resolve("api-sources"))
-
-        inputFile.set(apiSourcesJar.flatMap { it.archiveFile })
     }
 
     jar {
@@ -173,11 +153,11 @@ publishing {
             artifactId = rootProject.name + "-" + project.name + "-api"
             version = version
 
-            artifact(tasks.named("remapApiJar")) {
+            artifact(tasks.named("apiJar")) {
                 classifier = null
             }
 
-            artifact(tasks.named("remapApiSourcesJar")) {
+            artifact(tasks.named("apiSourcesJar")) {
                 classifier = "sources"
             }
 
