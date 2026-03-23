@@ -1,6 +1,7 @@
 package net.caffeinemc.mods.sodium.fabric.model;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import net.caffeinemc.mods.sodium.client.model.color.ColorProvider;
 import net.caffeinemc.mods.sodium.client.render.helper.ListStorage;
 import net.caffeinemc.mods.sodium.client.render.model.AbstractBlockRenderContext;
 import net.caffeinemc.mods.sodium.client.services.PlatformModelAccess;
@@ -17,6 +18,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,5 +46,10 @@ public class FabricModelAccess implements PlatformModelAccess {
         List<BlockStateModelPart> parts = emitter == null ? new ArrayList<>() : emitter.clearAndGet();
         blockStateModel.collectParts(random, parts);
         return parts;
+    }
+
+    @Override
+    public @Nullable ColorProvider<BlockState> createMutableColorProvider() {
+        return null;
     }
 }

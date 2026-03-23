@@ -1,5 +1,6 @@
 package net.caffeinemc.mods.sodium.client.services;
 
+import net.caffeinemc.mods.sodium.client.model.color.ColorProvider;
 import net.caffeinemc.mods.sodium.client.render.helper.ListStorage;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
@@ -53,4 +54,7 @@ public interface PlatformModelAccess {
     SodiumModelData getEmptyModelData();
 
     List<BlockStateModelPart> collectPartsOf(BlockStateModel blockStateModel, BlockAndTintGetter blockView, BlockPos pos, BlockState state, RandomSource random, @Nullable ListStorage emitter);
+
+    @Nullable
+    ColorProvider<BlockState> createMutableColorProvider();
 }

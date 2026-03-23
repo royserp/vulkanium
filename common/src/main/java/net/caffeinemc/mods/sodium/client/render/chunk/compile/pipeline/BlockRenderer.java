@@ -19,6 +19,7 @@ import net.caffeinemc.mods.sodium.client.render.model.MutableQuadViewImpl;
 import net.caffeinemc.mods.sodium.client.render.model.AbstractBlockRenderContext;
 import net.caffeinemc.mods.sodium.client.render.model.SodiumShadeMode;
 import net.caffeinemc.mods.sodium.client.render.texture.SpriteFinderCache;
+import net.caffeinemc.mods.sodium.client.services.PlatformModelAccess;
 import net.caffeinemc.mods.sodium.client.services.PlatformModelEmitter;
 import net.caffeinemc.mods.sodium.client.world.LevelSlice;
 import net.minecraft.client.Minecraft;
@@ -47,6 +48,8 @@ public class BlockRenderer extends AbstractBlockRenderContext {
     private ColorProvider<BlockState> colorProvider;
     private TranslucentGeometryCollector collector;
     private boolean cutoutLeaves;
+
+    private final ColorProvider<BlockState> mutableColorProvider = PlatformModelAccess.getInstance().createMutableColorProvider();
 
     public BlockRenderer(ColorProviderRegistry colorRegistry, LightPipelineProvider lighters) {
         this.colorProviderRegistry = colorRegistry;
@@ -124,6 +127,8 @@ public class BlockRenderer extends AbstractBlockRenderContext {
 
         if (tintIndex != -1) {
             ColorProvider<BlockState> colorProvider = this.colorProvider;
+
+            if (colorProvider == null && mutableColorProvider != null) colorProvider = mutableColorProvider;
 
             if (colorProvider != null) {
                 int[] vertexColors = this.vertexColors;
