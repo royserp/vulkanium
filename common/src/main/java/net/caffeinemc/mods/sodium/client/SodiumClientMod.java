@@ -107,6 +107,7 @@ public class SodiumClientMod {
             HashedFingerprint.writeToDisk(current.hashed());
 
             OPTIONS.notifications.hasSeenDonationPrompt = false;
+            OPTIONS.notifications.hasEditedFullscreenOption = false; // This is to check language again in modpacks...
             OPTIONS.notifications.hasClearedDonationButton = false;
 
             try {

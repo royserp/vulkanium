@@ -67,6 +67,7 @@ public class SodiumOptions {
     public static class NotificationSettings {
         public boolean hasClearedDonationButton = false;
         public boolean hasSeenDonationPrompt = false;
+        public boolean hasEditedFullscreenOption = false;
     }
 
     private static final Gson GSON = new GsonBuilder()
