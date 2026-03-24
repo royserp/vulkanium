@@ -20,8 +20,8 @@
     "ItemRenderStateMixin",
     "ModelBlockRendererAccessor",
     "ModelBlockRendererMixin",
-    "QuadViewImplMixin",
     "MutableQuadViewImplMixin",
+    "QuadViewImplMixin",
     "SubmitNodeCollectionMixin",
     "SubmitNodeStorageMixin"
   ]
