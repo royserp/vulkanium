@@ -271,6 +271,7 @@ public class SodiumConfigBuilder implements ConfigEntryPoint {
                                 .setTooltip(Component.translatable("sodium.options.exclusive_fullscreen.tooltip"))
                                 .setDefaultValue(false)
                                 .setFlags(OptionFlag.REQUIRES_GAME_RESTART)
+                                .setImpact(OptionImpact.HIGH)
                                 .setBinding(this.vanillaOpts.exclusiveFullscreen()::set, this.vanillaOpts.exclusiveFullscreen()::get)
                 )
         );
