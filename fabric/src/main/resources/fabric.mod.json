@@ -51,6 +51,9 @@
     ],
     "preLaunch" : [
       "net.caffeinemc.mods.sodium.fabric.SodiumPreLaunch"
+    ],
+    "fabric-renderer-api-v1:renderer_provider": [
+      "net.caffeinemc.mods.sodium.client.render.frapi.SodiumProvider"
     ]
   },
   "custom" : {
@@ -68,6 +71,7 @@
   "accessWidener" : "sodium-fabric.accesswidener",
   "mixins" : [
     "sodium-common.mixins.json",
+    "sodium-frapi.mixins.json",
     "sodium-fabric.mixins.json"
   ],
   "depends" : {

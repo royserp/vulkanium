@@ -1,11 +1,11 @@
 package net.caffeinemc.mods.sodium.client.render.frapi;
 
-import net.caffeinemc.mods.sodium.client.services.FRAPIProvider;
-import net.fabricmc.fabric.api.renderer.v1.Renderer;
+import net.fabricmc.fabric.api.client.renderer.v1.Renderer;
+import net.fabricmc.fabric.api.client.renderer.v1.RendererProvider;
 
-public class SodiumProvider implements FRAPIProvider {
+public class SodiumProvider implements RendererProvider {
     @Override
-    public void register() {
-        Renderer.register(SodiumRenderer.INSTANCE);
+    public Renderer getRenderer() {
+        return SodiumRenderer.INSTANCE;
     }
 }
