@@ -4,5 +4,4 @@
 Everything above the line is ignored and not included in the changelog. Everything below will be in the
 changelog on GitHub, Modrinth and CurseForge.
 ----------
-Sodium [SodiumVersion]() is the first release for Minecraft [MCVersion]().
-
+Sodium [SodiumVersion]() fixes some bugs and updates to the latest version of NeoForge.
