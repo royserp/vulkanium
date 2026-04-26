@@ -1,7 +1,7 @@
 import me.modmuss50.mpp.ReleaseType
 import me.modmuss50.mpp.platforms.curseforge.CurseforgeOptions
 import me.modmuss50.mpp.platforms.modrinth.ModrinthOptions
-import java.util.Locale
+import java.util.*
 
 plugins {
     id("me.modmuss50.mod-publish-plugin") version("1.1.0")
@@ -46,6 +46,7 @@ gradle.projectsEvaluated {
             repository = "CaffeineMC/sodium"
             commitish = BuildConfig.calculateGitHash(project)
             tagName = BuildConfig.RELEASE_TAG
+            displayName = "Sodium ${BuildConfig.MOD_VERSION} for Minecraft ${BuildConfig.MINECRAFT_VERSION}"
             file.unset()
             file.unsetConvention()
 
@@ -64,18 +65,19 @@ fun me.modmuss50.mpp.ModPublishExtension.setupFor(loaderName: String, releasePla
             from(curseforgeOptions)
             
             file.set(jar)
-            displayName = "Sodium ${BuildConfig.MOD_VERSION} for $loaderName ${BuildConfig.MINECRAFT_VERSION}"
+            displayName = "Sodium ${BuildConfig.MOD_VERSION} for $loaderName"
             modLoaders.add(loaderLowercase)
-            
+
             clientRequired = true
             serverRequired = false
         }
 
         modrinth("modrinth$loaderName") {
             from(modrinthOptions)
-            
+
             file.set(jar)
-            displayName = "Sodium ${BuildConfig.MOD_VERSION} for $loaderName ${BuildConfig.MINECRAFT_VERSION}"
+            displayName = "Sodium ${BuildConfig.MOD_VERSION} for $loaderName on ${BuildConfig.MINECRAFT_VERSION}"
+            version = "${BuildConfig.MOD_VERSION}+mc${BuildConfig.MINECRAFT_VERSION}-$loaderLowercase"
             modLoaders.add(loaderLowercase)
         }
     }
