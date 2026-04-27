@@ -11,8 +11,8 @@ import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
 
 import java.util.Arrays;
 
@@ -62,7 +62,7 @@ public class FlatLightPipeline implements LightPipeline {
 
     /**
      * When vanilla computes an offset lightmap with flat lighting, it passes the original BlockState but the
-     * offset BlockPos to {@link LevelRenderer#getLightColor(BlockAndTintGetter, BlockState, BlockPos)}.
+     * offset BlockPos to {@link LevelRenderer#getLightCoords(LevelRenderer.BrightnessGetter, BlockAndLightGetter, BlockState, BlockPos)}.
      * This does not make much sense but fixes certain issues, primarily dark quads on light-emitting blocks
      * behind tinted glass. {@link LightDataAccess} cannot efficiently store lightmaps computed with
      * inconsistent values so this method exists to mirror vanilla behavior as closely as possible.

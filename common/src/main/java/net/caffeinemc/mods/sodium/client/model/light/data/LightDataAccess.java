@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -169,7 +170,7 @@ public abstract class LightDataAccess {
      * Computes the combined lightmap using block light, sky light, and luminance values.
      *
      * <p>This method's logic is equivalent to
-     * {@link LevelRenderer#getLightCoords(BlockAndTintGetter, BlockPos)}, but without the
+     * {@link LevelRenderer#getLightCoords(BlockAndLightGetter, BlockPos)}, but without the
      * emissive check.
      */
     public static int getLightmap(int word) {
@@ -181,7 +182,7 @@ public abstract class LightDataAccess {
      * the {@link LightCoordsUtil#FULL_BRIGHT fullbright lightmap} if emissive.
      *
      * <p>This method's logic is equivalent to
-     * {@link LevelRenderer#getLightCoords(BlockAndTintGetter, BlockPos)}.
+     * {@link LevelRenderer#getLightCoords(BlockAndLightGetter, BlockPos)}.
      */
     public static int getEmissiveLightmap(int word) {
         if (unpackEM(word)) {

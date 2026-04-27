@@ -4,9 +4,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.caffeinemc.mods.sodium.client.world.LevelSlice;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.joml.Matrix4f;
@@ -25,7 +25,7 @@ public interface PlatformLevelRenderHooks {
      * Runs any events after drawing a chunk layer.
      *
      * @param renderLayer      The current chunk layer that was drawn
-     * @param level
+     * @param level            The current level
      * @param levelRenderer    The level renderer
      * @param modelMatrix      The current modelview matrix
      * @param projectionMatrix The current projection matrix
@@ -49,7 +49,7 @@ public interface PlatformLevelRenderHooks {
      * @param renderers      The list of chunk renderers to run.
      * @param typeToConsumer A consumer that converts render types to vertex consumers
      * @param slice          The current level slice
-     * @param origin
+     * @param origin         The origin of the current chunk
      */
     void runChunkMeshAppenders(List<?> renderers, Function<ChunkSectionLayer, VertexConsumer> typeToConsumer, LevelSlice slice, BlockPos origin);
 }
