@@ -69,7 +69,7 @@ sourceSets.apply {
 }
 
 dependencies {
-    minecraft(group = "com.mojang", name = "minecraft", version = BuildConfig.MINECRAFT_VERSION)
+    minecraft("com.mojang:minecraft:${BuildConfig.MINECRAFT_VERSION}")
 
     implementation("net.fabricmc:fabric-loader:${BuildConfig.FABRIC_LOADER_VERSION}")
 
