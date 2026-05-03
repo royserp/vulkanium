@@ -50,6 +50,6 @@ public class FabricModelAccess implements PlatformModelAccess {
 
     @Override
     public @Nullable ColorProvider<BlockState> createMutableColorProvider() {
-        return null;
+        return new FabricMutableProvider();
     }
 }

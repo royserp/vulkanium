@@ -16,45 +16,36 @@
 
 package net.caffeinemc.mods.sodium.client.render.frapi.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.caffeinemc.mods.sodium.api.texture.SpriteUtil;
 import net.caffeinemc.mods.sodium.api.util.ColorARGB;
 import net.caffeinemc.mods.sodium.api.util.ColorMixer;
-import net.caffeinemc.mods.sodium.api.vertex.attributes.common.ColorAttribute;
 import net.caffeinemc.mods.sodium.client.model.color.ColorProvider;
-import net.caffeinemc.mods.sodium.client.model.color.ColorProviderRegistry;
 import net.caffeinemc.mods.sodium.client.model.light.LightMode;
 import net.caffeinemc.mods.sodium.client.model.light.LightPipelineProvider;
 import net.caffeinemc.mods.sodium.client.model.light.data.SingleBlockLightDataCache;
-import net.caffeinemc.mods.sodium.client.render.frapi.wrapper.ExtendedMutableQuadViewImpl;
 import net.caffeinemc.mods.sodium.client.render.frapi.wrapper.MutableQuadViewWrapper;
 import net.caffeinemc.mods.sodium.client.render.model.MutableQuadViewImpl;
 import net.caffeinemc.mods.sodium.client.render.model.AbstractBlockRenderContext;
-import net.caffeinemc.mods.sodium.client.render.model.QuadEncoder;
 import net.caffeinemc.mods.sodium.client.render.model.SodiumShadeMode;
 import net.caffeinemc.mods.sodium.client.render.texture.SpriteFinderCache;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadTransform;
-import net.fabricmc.fabric.api.client.renderer.v1.model.FabricBlockStateModel;
 import net.fabricmc.fabric.api.client.renderer.v1.render.AltModelBlockRenderer;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockTintsFactory;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.TriState;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
 
@@ -85,7 +76,7 @@ public class NonTerrainBlockRenderContext extends AbstractBlockRenderContext imp
         this.random = new SingleThreadedRandomSource(42L);
     }
 
-    private void configureTintCache(final BlockState blockState) {
+    private void configureTintCache(final BlockState blockState, BlockAndTintGetter level, BlockPos pos) {
         List<BlockTintSource> tintSources = colorMap.getTintSources(blockState);
         int tintSourceCount = tintSources.size();
 
@@ -95,12 +86,24 @@ public class NonTerrainBlockRenderContext extends AbstractBlockRenderContext imp
             for (int i = 0; i < tintSourceCount; ++i) {
                 computedTintValues.add(-1);
             }
+        } else {
+            final BlockTintsFactory factory = BlockColorRegistry.getFactory(blockState);
+
+            if (factory != null) {
+                factory.collect(blockState, level, pos, computedTintValues);
+            }
+
+            if (!this.computedTintValues.isEmpty()) {
+                for (int i = 0; i < this.computedTintValues.size(); i++) {
+                    this.tintSources.add(null);
+                }
+            }
         }
     }
 
     private int computeTintColor(final BlockAndTintGetter level, final BlockState state, final BlockPos pos, final int tintIndex) {
         if (!tintSourcesInitialized) {
-            configureTintCache(state);
+            configureTintCache(state, level, pos);
             tintSourcesInitialized = true;
         }
 
