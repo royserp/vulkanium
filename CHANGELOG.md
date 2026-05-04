@@ -18,3 +18,5 @@ Sodium [SodiumVersion]() for Minecraft [MCVersion]() makes some improvements to 
 - Fix animated sprite mipping ([#3619](https://github.com/CaffeineMC/sodium/pull/3619))
 - Add caching to `GlStateManager#glViewport` ([#3309](https://github.com/CaffeineMC/sodium/pull/3309))
 - Add support for new fabric color provider API
+- Fix tint on neoforge when blocks are rendered as items ([#3615](https://github.com/CaffeineMC/sodium/pull/3615))
+- Fix the animation when fluid sprites are obtained directly via FluidModel ([#3630](https://github.com/CaffeineMC/sodium/pull/3630))
