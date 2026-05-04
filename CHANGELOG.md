@@ -4,4 +4,17 @@
 Everything above the line is ignored and not included in the changelog. Everything below will be in the
 changelog on GitHub, Modrinth and CurseForge.
 ----------
-Sodium [SodiumVersion]() fixes some bugs and updates to the latest version of NeoForge.
+Sodium [SodiumVersion]() for Minecraft [MCVersion]() makes some improvements to the options UI, introduces a new automatic publishing system, fixes some bugs, and introduces some small performance optimizations.
+
+- Workflow and Gradle based publishing setup with changelog system ([#3575](https://github.com/CaffeineMC/sodium/pull/3575), [#3622](https://github.com/CaffeineMC/sodium/pull/3622))
+- Invalidate cached search index sources to be properly indexed after language switch
+- Jump to the mod's options when its header in the page list is clicked
+- Show that an entry in the options page list leads to an external page more clearly
+- Hide options search bar clear button when search bar is empty
+- Implement Alt shortcuts and ESC discard behavior ([#2769](https://github.com/CaffeineMC/sodium/pull/2769)) ([#3604](https://github.com/CaffeineMC/sodium/pull/3604))
+- Reset button for options with hold-shift to reset functionality
+- Fix rare translucency sorting crash when repeatedly interacting with specific chunks with some resource packs ([#3609](https://github.com/CaffeineMC/sodium/pull/3609))
+- Make the filtering mode configurable with an option and change the default to nearest
+- Fix animated sprite mipping ([#3619](https://github.com/CaffeineMC/sodium/pull/3619))
+- Add caching to `GlStateManager#glViewport` ([#3309](https://github.com/CaffeineMC/sodium/pull/3309))
+- Add support for new fabric color provider API
