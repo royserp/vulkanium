@@ -2,34 +2,19 @@ package net.caffeinemc.mods.sodium.client.render.immediate.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.QuadInstance;
+import net.caffeinemc.mods.sodium.api.math.MatrixHelper;
 import net.caffeinemc.mods.sodium.api.util.ColorARGB;
 import net.caffeinemc.mods.sodium.api.util.ColorMixer;
-import net.caffeinemc.mods.sodium.client.model.quad.ModelQuadView;
-import net.caffeinemc.mods.sodium.api.math.MatrixHelper;
-import net.caffeinemc.mods.sodium.api.util.ColorABGR;
-import net.caffeinemc.mods.sodium.api.util.ColorU8;
 import net.caffeinemc.mods.sodium.api.vertex.buffer.VertexBufferWriter;
 import net.caffeinemc.mods.sodium.api.vertex.format.common.EntityVertex;
+import net.caffeinemc.mods.sodium.client.model.quad.ModelQuadView;
 import net.caffeinemc.mods.sodium.client.services.PlatformRuntimeInformation;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 
 public class BakedModelEncoder {
-    private static int mergeLighting(int stored, int calculated) {
-        if (stored == 0) return calculated;
-
-        int blockLight = Math.max(stored & 0xFFFF, calculated & 0xFFFF);
-        int skyLight = Math.max((stored >> 16) & 0xFFFF, (calculated >> 16) & 0xFFFF);
-        return blockLight | (skyLight << 16);
-    }
-
-    private static final boolean MULTIPLY_ALPHA = PlatformRuntimeInformation.getInstance().usesAlphaMultiplication();
-
-
-    public static boolean shouldMultiplyAlpha() {
-        return MULTIPLY_ALPHA;
-    }
+    private static final boolean USE_COLOR_MULTIPLICATION = PlatformRuntimeInformation.getInstance().usesBakedQuadColorMultiplication();
 
     public static void writeQuadVertices(VertexBufferWriter writer, PoseStack.Pose matrices, ModelQuadView quad, QuadInstance instance) {
         Matrix3f matNormal = matrices.normal();
@@ -47,7 +32,13 @@ public class BakedModelEncoder {
 
                 int newLight = instance.getLightCoordsWithEmission(i, quad.getMaxLightQuad(i));
 
-                int newColor = ColorARGB.toABGR(instance.getColor(i));
+                //  NeoForge patches the default VertexConsumer.putBakedQuad to do ARGB.multiply(instance.getColor(vertex), quad.bakedColors().color(vertex)), but Sodium short-circuits that path via BufferBuilderMixin, so the multiplication is lost. Blocks that encode their tint only in element.color(...) (XyCraft ores) lose all color, and blocks combining a BlockTintSource with a baked color get only one factor applied.
+                //  The platform flag is needed because Fabric's default implementation does not perform this multiplication.
+                int color = instance.getColor(i);
+                if (USE_COLOR_MULTIPLICATION) {
+                    color = ColorMixer.mulComponentWise(color, quad.getColor(i));
+                }
+                int newColor = ColorARGB.toABGR(color);
 
                 // The packed transformed normal vector
                 int normal = MatrixHelper.transformNormal(matNormal, matrices.trustedNormals, quad.getAccurateNormal(i));
