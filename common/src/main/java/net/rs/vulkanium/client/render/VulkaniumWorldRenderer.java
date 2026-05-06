@@ -19,7 +19,9 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayerGroup;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.Mth;
@@ -179,13 +181,22 @@ public class VulkaniumWorldRenderer {
 
                 this.forEachBlockEntity(section, blockEntity -> {
                     var pos = blockEntity.getBlockPos();
+                    var progresses = progression.get(pos.asLong());
 
-                    stack.pushPose();
-                    stack.translate(pos.getX() - camera.position().x, pos.getY() - camera.position().y, pos.getZ() - camera.position().z);
+                    ModelFeatureRenderer.CrumblingOverlay breakProgress;
+                    if (progresses != null && !progresses.isEmpty()) {
+                        stack.pushPose();
+                        stack.translate(pos.getX() - camera.position().x, pos.getY() - camera.position().y, pos.getZ() - camera.position().z);
+                        breakProgress = new ModelFeatureRenderer.CrumblingOverlay(progresses.last().getProgress(), stack.last());
+                        stack.popPose();
+                    } else {
+                        breakProgress = null;
+                    }
 
-                    ((MinecraftAccessor) this.client).getBlockEntityRenderDispatcher().extractRenderState(blockEntity, tickDelta, progression.get(pos.asLong()), levelRenderState);
-
-                    stack.popPose();
+                    var state = ((MinecraftAccessor) this.client).getBlockEntityRenderDispatcher().tryExtractRenderState(blockEntity, tickDelta, breakProgress, false);
+                    if (state != null) {
+                        levelRenderState.blockEntityRenderStates.add(state);
+                    }
                 });
             }
         }
