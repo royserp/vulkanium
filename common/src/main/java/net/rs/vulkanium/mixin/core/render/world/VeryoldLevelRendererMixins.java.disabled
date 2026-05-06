@@ -1,0 +1,81 @@
+package net.rs.vulkanium.mixin.core.render.world;
+
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import net.rs.vulkanium.client.render.VulkaniumWorldRenderer;
+import net.rs.vulkanium.client.render.chunk.ChunkRenderMatrices;
+import net.rs.vulkanium.client.util.GameRendererStorage;
+import net.rs.vulkanium.client.util.VulkaniumChunkSection;
+import net.rs.vulkanium.client.world.LevelRendererExtension;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.sprite.AtlasManager;
+import net.minecraft.client.renderer.ShaderManager;
+import org.joml.Matrix4fc;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import com.mojang.blaze3d.systems.RenderPass;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.util.EnumMap;
+import java.util.List;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Shadow;
+
+@Mixin(LevelRenderer.class)
+public class LevelRendererMixins implements LevelRendererExtension {
+    @Shadow @Final private TextureManager textureManager;
+    @Shadow @Final private LevelRenderState levelRenderState;
+    @Unique
+    private static final EnumMap<ChunkSectionLayer, Int2ObjectOpenHashMap<List<RenderPass.Draw<GpuBufferSlice[]>>>> STATIC_MAP = new EnumMap<>(ChunkSectionLayer.class);
+
+    @Unique
+    private VulkaniumWorldRenderer renderer;
+
+    @Unique
+    private ChunkRenderMatrices matrices;
+
+    @Override
+    public VulkaniumWorldRenderer vulkanium$getWorldRenderer() {
+        return this.renderer;
+    }
+    
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void init(EntityRenderDispatcher entityRenderDispatcher, BlockEntityRenderDispatcher blockEntityRenderDispatcher, ModelManager modelManager, TextureManager textureManager, AtlasManager atlasManager, ShaderManager shaderManager, GameRenderer gameRenderer, int width, int height, CallbackInfo ci) {
+        this.renderer = new VulkaniumWorldRenderer(Minecraft.getInstance());
+    }
+
+    /**
+     * @reason Redirect to our renderer
+     * @author JellySquid
+     */
+    @Overwrite
+    public ChunkSectionsToRender prepareChunkRenders(final Matrix4fc modelViewMatrix) {
+        this.matrices = new ChunkRenderMatrices(((GameRendererStorage) Minecraft.getInstance().gameRenderer).vulkanium$getProjectionMatrix(), modelViewMatrix);
+        ChunkSectionsToRender chunkSectionsToRender = new ChunkSectionsToRender(this.textureManager.getTexture(TextureAtlas.LOCATION_BLOCKS).getTextureView(), LevelRendererMixins.STATIC_MAP, -1, new GpuBufferSlice[0]);
+        ((VulkaniumChunkSection) (Object) chunkSectionsToRender).vulkanium$setRendering(renderer, matrices, this.levelRenderState.cameraRenderState.pos.x, this.levelRenderState.cameraRenderState.pos.y, this.levelRenderState.cameraRenderState.pos.z);
+        return chunkSectionsToRender;
+    }
+    
+    @Override
+    public void vulkanium$setMatrices(ChunkRenderMatrices matrices) {
+        this.matrices = matrices;
+    }
+
+    @Override
+    public ChunkRenderMatrices vulkanium$getMatrices() {
+        return this.matrices;
+    }
+}

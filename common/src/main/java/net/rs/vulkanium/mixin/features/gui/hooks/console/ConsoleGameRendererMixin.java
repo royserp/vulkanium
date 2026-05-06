@@ -1,0 +1,67 @@
+package net.rs.vulkanium.mixin.features.gui.hooks.console;
+
+
+import com.llamalad7.mixinextras.sugar.Local;
+import net.rs.vulkanium.client.gui.console.ConsoleHooks;
+import net.rs.vulkanium.client.vk.device.RenderDevice;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.state.GameRenderState;
+import net.minecraft.client.renderer.state.gui.GuiRenderState;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
+import org.lwjgl.glfw.GLFW;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(GameRenderer.class)
+public class ConsoleGameRendererMixin {
+    @Shadow
+    @Final
+    Minecraft minecraft;
+
+    @Shadow
+    @Final
+    private RenderBuffers renderBuffers;
+
+    @Shadow
+    @Final
+    private GameRenderState gameRenderState;
+    @Unique
+    private static boolean HAS_RENDERED_OVERLAY_ONCE = false;
+
+    @Inject(method = "render", at = @At("HEAD"))
+    private void onRender(DeltaTracker deltaTracker, boolean bl, CallbackInfo ci) {
+        // Do not start updating the console overlay until the font renderer is ready
+        // This prevents the console from using tofu boxes for everything during early startup
+        if (Minecraft.getInstance().gui.overlay() != null) {
+            if (!HAS_RENDERED_OVERLAY_ONCE) {
+                return;
+            }
+        }
+
+        Profiler.get().push("vulkanium_console_overlay");
+        int mouseX = (int)this.minecraft.mouseHandler.getScaledXPos(this.minecraft.getWindow());
+        int mouseY = (int)this.minecraft.mouseHandler.getScaledYPos(this.minecraft.getWindow());
+        GuiGraphicsExtractor drawContext = new GuiGraphicsExtractor(this.minecraft, this.gameRenderState.guiRenderState, mouseX, mouseY);
+
+        ConsoleHooks.extractRenderState(drawContext, GLFW.glfwGetTime());
+
+        Profiler.get().pop();
+
+        HAS_RENDERED_OVERLAY_ONCE = true;
+    }
+
+    @Inject(method = "render", at = @At(value = "HEAD"))
+    private void onRenderStart(DeltaTracker deltaTracker, boolean bl, CallbackInfo ci) {
+        RenderDevice.INSTANCE.flip();
+    }
+}

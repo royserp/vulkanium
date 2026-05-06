@@ -1,0 +1,46 @@
+package net.rs.vulkanium.mixin.frapi;
+
+import net.rs.vulkanium.client.render.helper.ListStorage;
+import net.rs.vulkanium.client.render.model.AbstractBlockRenderContext;
+import net.rs.vulkanium.client.services.PlatformModelAccess;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.client.renderer.v1.model.FabricBlockStateModelPart;
+import net.fabricmc.fabric.api.client.renderer.v1.model.FabricBlockStateModel;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
+import org.spongepowered.asm.mixin.Mixin;
+
+import java.util.List;
+import java.util.function.Predicate;
+
+@Mixin(BlockStateModel.class)
+public interface BakedModelMixin extends FabricBlockStateModel {
+    @Override
+    default void emitQuads(QuadEmitter emitter, BlockAndTintGetter blockView, BlockPos pos, BlockState state, RandomSource random, Predicate<@Nullable Direction> cullTest) {
+        List<BlockStateModelPart> parts = PlatformModelAccess.getInstance().collectPartsOf((BlockStateModel) this, blockView, pos, state, random, emitter instanceof ListStorage ls ? ls : null);
+        int partCount = parts.size();
+
+        if (emitter instanceof AbstractBlockRenderContext.BlockEmitter be) {
+            ChunkSectionLayer type = ItemBlockRenderTypes.getChunkRenderType(state);
+
+            for (int i = 0; i < partCount; ++i) {
+                if (PlatformModelAccess.getInstance().getPartRenderType(parts.get(i), state, type) != type) {
+                    be.markInvalidToDowngrade();
+                    break;
+                }
+            }
+        }
+
+        for (int i = 0; i < partCount; ++i) {
+            ((FabricBlockStateModelPart) parts.get(i)).emitQuads(emitter, cullTest);
+        }
+    }
+}

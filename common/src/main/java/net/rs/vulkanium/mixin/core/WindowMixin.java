@@ -1,0 +1,26 @@
+package net.rs.vulkanium.mixin.core;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.platform.Window;
+import net.rs.vulkanium.client.platform.NativeWindowHandle;
+import net.rs.vulkanium.client.VulkaniumClientMod;
+import net.rs.vulkanium.client.compatibility.workarounds.Workarounds;
+import net.rs.vulkanium.client.services.PlatformRuntimeInformation;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWNativeWin32;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+
+@Mixin(Window.class)
+public abstract class WindowMixin implements NativeWindowHandle {
+    @Shadow
+    public abstract long handle();
+
+    @Override
+    public long getWin32Handle() {
+        return GLFWNativeWin32.glfwGetWin32Window(this.handle());
+    }
+}

@@ -1,0 +1,27 @@
+{
+  "package": "net.rs.vulkanium.mixin.frapi",
+  "required": true,
+  "compatibilityLevel": "JAVA_17",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "conformVisibility": true
+  },
+  "client": [
+    "BakedModelMixin",
+    "BlockStateModelPartMixin",
+    "BlockRenderDispatcherAccessor",
+    "BlockRenderDispatcherMixin",
+    "ItemFeatureRendererMixin",
+    "ItemLayerRenderStateMixin",
+    "ItemRendererAccessor",
+    "ItemRenderStateMixin",
+    "ModelBlockRendererAccessor",
+    "ModelBlockRendererMixin",
+    "QuadViewImplMixin",
+    "MutableQuadViewImplMixin",
+    "SubmitNodeCollectionMixin",
+    "SubmitNodeStorageMixin"
+  ]
+}
