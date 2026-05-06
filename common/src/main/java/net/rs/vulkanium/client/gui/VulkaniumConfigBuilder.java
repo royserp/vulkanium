@@ -167,6 +167,15 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
                                 .setFlags(OptionFlag.REQUIRES_RENDERER_RELOAD)
                 )
                 .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:general.fov"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.fov"))
+                                .setTooltip(Component.translatable("options.fov.tooltip"))
+                                .setRange(30, 110, 1)
+                                .setDefaultValue(70)
+                                .setBinding(this.vanillaOpts.fov()::set, this.vanillaOpts.fov()::get)
+                )
+                .addOption(
                         builder.createIntegerOption(Identifier.parse("vulkanium:general.gamma"))
                                 .setStorageHandler(this.vanillaStorage)
                                 .setName(Component.translatable("options.gamma"))
@@ -264,8 +273,36 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
                                 .setDefaultValue(60)
                                 .setBinding(this.vanillaOpts.framerateLimit()::set, this.vanillaOpts.framerateLimit()::get)
                 )
+                .addOption(
+                        builder.createEnumOption(Identifier.parse("vulkanium:general.inactivity_fps_limit"), InactivityFpsLimit.class)
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.inactivityFpsLimit"))
+                                .setTooltip(Component.translatable("options.inactivityFpsLimit.tooltip"))
+                                .setDefaultValue(InactivityFpsLimit.AFK)
+                                .setElementNameProvider(value -> Component.translatable("options.inactivityFpsLimit." + value.getSerializedName()))
+                                .setBinding(this.vanillaOpts.inactivityFpsLimit()::set, this.vanillaOpts.inactivityFpsLimit()::get)
+                )
         );
         generalPage.addOptionGroup(builder.createOptionGroup()
+                .addOption(
+                        builder.createEnumOption(Identifier.parse("vulkanium:general.preferred_graphics_backend"), net.minecraft.client.PreferredGraphicsApi.class)
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.preferredGraphicsBackend"))
+                                .setTooltip(Component.translatable("options.preferredGraphicsBackend.tooltip"))
+                                .setDefaultValue(net.minecraft.client.PreferredGraphicsApi.DEFAULT)
+                                .setElementNameProvider(value -> Component.translatable("options.graphicsApi." + value.getSerializedName()))
+                                .setBinding(this.vanillaOpts.preferredGraphicsBackend()::set, this.vanillaOpts.preferredGraphicsBackend()::get)
+                                .setFlags(OptionFlag.REQUIRES_GAME_RESTART)
+                )
+                .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:general.menu_blur"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.menu_background_blurriness"))
+                                .setTooltip(Component.translatable("options.menu_background_blurriness.tooltip"))
+                                .setRange(0, 10, 1)
+                                .setDefaultValue(5)
+                                .setBinding(this.vanillaOpts.menuBackgroundBlurriness()::set, this.vanillaOpts.menuBackgroundBlurriness()::get)
+                )
                 .addOption(
                         builder.createEnumOption(Identifier.parse("vulkanium:general.attack_indicator"), AttackIndicatorStatus.class)
                                 .setStorageHandler(this.vanillaStorage)
@@ -495,6 +532,69 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
                                 }, Identifier.parse("vulkanium:quality.filtering_mode"))
                 )
         );
+
+        qualityPage.addOptionGroup(builder.createOptionGroup()
+                .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:quality.fov_effect_scale"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.fovEffectScale"))
+                                .setTooltip(Component.translatable("options.fovEffectScale.tooltip"))
+                                .setRange(0, 100, 1)
+                                .setDefaultValue(100)
+                                .setValueFormatter(ControlValueFormatterImpls.percentage())
+                                .setBinding(value -> this.vanillaOpts.fovEffectScale().set(value / 100.0), () -> (int) (this.vanillaOpts.fovEffectScale().get() * 100.0))
+                )
+                .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:quality.screen_effect_scale"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.screenEffectScale"))
+                                .setTooltip(Component.translatable("options.screenEffectScale.tooltip"))
+                                .setRange(0, 100, 1)
+                                .setDefaultValue(100)
+                                .setValueFormatter(ControlValueFormatterImpls.percentage())
+                                .setBinding(value -> this.vanillaOpts.screenEffectScale().set(value / 100.0), () -> (int) (this.vanillaOpts.screenEffectScale().get() * 100.0))
+                )
+                .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:quality.darkness_effect_scale"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.darknessEffectScale"))
+                                .setTooltip(Component.translatable("options.darknessEffectScale.tooltip"))
+                                .setRange(0, 100, 1)
+                                .setDefaultValue(100)
+                                .setValueFormatter(ControlValueFormatterImpls.percentage())
+                                .setBinding(value -> this.vanillaOpts.darknessEffectScale().set(value / 100.0), () -> (int) (this.vanillaOpts.darknessEffectScale().get() * 100.0))
+                )
+                .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:quality.glint_speed"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.glintSpeed"))
+                                .setTooltip(Component.translatable("options.glintSpeed.tooltip"))
+                                .setRange(0, 100, 1)
+                                .setDefaultValue(50)
+                                .setValueFormatter(ControlValueFormatterImpls.percentage())
+                                .setBinding(value -> this.vanillaOpts.glintSpeed().set(value / 100.0), () -> (int) (this.vanillaOpts.glintSpeed().get() * 100.0))
+                )
+                .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:quality.glint_strength"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.glintStrength"))
+                                .setTooltip(Component.translatable("options.glintStrength.tooltip"))
+                                .setRange(0, 100, 1)
+                                .setDefaultValue(75)
+                                .setValueFormatter(ControlValueFormatterImpls.percentage())
+                                .setBinding(value -> this.vanillaOpts.glintStrength().set(value / 100.0), () -> (int) (this.vanillaOpts.glintStrength().get() * 100.0))
+                )
+                .addOption(
+                        builder.createIntegerOption(Identifier.parse("vulkanium:quality.damage_tilt_strength"))
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.damageTiltStrength"))
+                                .setTooltip(Component.translatable("options.damageTiltStrength.tooltip"))
+                                .setRange(0, 100, 1)
+                                .setDefaultValue(100)
+                                .setValueFormatter(ControlValueFormatterImpls.percentage())
+                                .setBinding(value -> this.vanillaOpts.damageTiltStrength().set(value / 100.0), () -> (int) (this.vanillaOpts.damageTiltStrength().get() * 100.0))
+                )
+        );
         return qualityPage;
     }
 
@@ -526,6 +626,16 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
                                 .setBinding(value -> this.vulkaniumOpts.performance.chunkBuildDeferMode = value, () -> this.vulkaniumOpts.performance.chunkBuildDeferMode)
                                 .setImpact(OptionImpact.HIGH)
                                 .setFlags(OptionFlag.REQUIRES_RENDERER_UPDATE)
+                )
+                .addOption(
+                        builder.createEnumOption(Identifier.parse("vulkanium:performance.prioritize_chunk_updates"), net.minecraft.client.PrioritizeChunkUpdates.class)
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.prioritizeChunkUpdates"))
+                                .setTooltip(Component.translatable("options.prioritizeChunkUpdates.tooltip"))
+                                .setDefaultValue(net.minecraft.client.PrioritizeChunkUpdates.NONE)
+                                .setElementNameProvider(net.minecraft.client.PrioritizeChunkUpdates::caption)
+                                .setBinding(this.vanillaOpts.prioritizeChunkUpdates()::set, this.vanillaOpts.prioritizeChunkUpdates()::get)
+                                .setImpact(OptionImpact.HIGH)
                 )
         );
 
@@ -571,17 +681,6 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
                 )
                 .addOption(
                         this.buildNoErrorContextOption(builder)
-                )
-                .addOption(
-                        builder.createEnumOption(Identifier.parse("vulkanium:performance.inactivity_fps_limit"), InactivityFpsLimit.class)
-                                .setStorageHandler(this.vanillaStorage)
-                                .setName(Component.translatable("options.inactivityFpsLimit"))
-                                .setElementNameProvider(InactivityFpsLimit::caption)
-                                .setTooltip((state) -> state == InactivityFpsLimit.AFK ?
-                                        Component.translatable("options.inactivityFpsLimit.afk.tooltip") :
-                                        Component.translatable("options.inactivityFpsLimit.minimized.tooltip"))
-                                .setDefaultValue(InactivityFpsLimit.AFK)
-                                .setBinding(this.vanillaOpts.inactivityFpsLimit()::set, this.vanillaOpts.inactivityFpsLimit()::get)
                 )
         );
 
@@ -636,19 +735,6 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
         advancedPage.addOptionGroup(builder.createOptionGroup()
                 .addOption(
                         builder.createIntegerOption(Identifier.parse("vulkanium:advanced.cpu_render_ahead_limit"))
-                                .setStorageHandler(this.vulkaniumStorage)
-                                .setName(Component.translatable("vulkanium.options.cpu_render_ahead_limit.name"))
-                                .setValueFormatter(ControlValueFormatterImpls.translateVariable("vulkanium.options.cpu_render_ahead_limit.value"))
-                                .setTooltip(Component.translatable("vulkanium.options.cpu_render_ahead_limit.tooltip"))
-                                .setRange(0, 9, 1)
-                                .setDefaultValue(DEFAULTS.advanced.cpuRenderAheadLimit)
-                                .setBinding(value -> this.vulkaniumOpts.advanced.cpuRenderAheadLimit = value, () -> this.vulkaniumOpts.advanced.cpuRenderAheadLimit)
-                )
-        );
-        return advancedPage;
-    }
-
-}.cpu_render_ahead_limit"))
                                 .setStorageHandler(this.vulkaniumStorage)
                                 .setName(Component.translatable("vulkanium.options.cpu_render_ahead_limit.name"))
                                 .setValueFormatter(ControlValueFormatterImpls.translateVariable("vulkanium.options.cpu_render_ahead_limit.value"))

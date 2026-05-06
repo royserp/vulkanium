@@ -31,6 +31,7 @@ import net.rs.vulkanium.client.vk.device.RenderDevice;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.util.profiling.Profiler;
 import net.rs.vulkanium.mixin.core.MinecraftAccessor;
+import org.joml.Vector3d;
 import org.lwjgl.vulkan.VkCommandBuffer;
 
 import java.util.Collection;
@@ -94,11 +95,13 @@ public class VulkaniumWorldRenderer {
             this.reload();
         }
 
-        this.renderSectionManager.updateChunks(updateChunksImmediately);
-
         if (viewport != null) {
+            this.renderSectionManager.update(camera, viewport, fogParameters, this.client.player != null && this.client.player.isSpectator());
             this.renderSectionManager.finalizeRenderLists(viewport);
         }
+
+        this.renderSectionManager.updateChunks(updateChunksImmediately);
+        this.renderSectionManager.uploadChunks();
 
         var profiler = Profiler.get();
         profiler.push("chunk_render_tick");
