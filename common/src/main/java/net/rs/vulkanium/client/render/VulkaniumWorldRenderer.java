@@ -86,6 +86,8 @@ public class VulkaniumWorldRenderer {
     public void onExtract(Camera camera, Viewport viewport, FogParameters fogParameters, boolean updateChunksImmediately) {
         this.lastFogParameters = fogParameters;
 
+        this.renderSectionManager.prepareFrame(new Vector3d(camera.position().x, camera.position().y, camera.position().z));
+
         this.processChunkEvents();
 
         if (this.renderDistance != this.client.options.getEffectiveRenderDistance()) {

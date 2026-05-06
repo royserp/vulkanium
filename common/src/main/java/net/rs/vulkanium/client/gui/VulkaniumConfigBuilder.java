@@ -292,6 +292,18 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
 
         qualityPage.addOptionGroup(builder.createOptionGroup()
                 .addOption(
+                        builder.createEnumOption(Identifier.parse("vulkanium:quality.preset"), net.minecraft.client.GraphicsPreset.class)
+                                .setStorageHandler(this.vanillaStorage)
+                                .setName(Component.translatable("options.graphics"))
+                                .setTooltip(Component.translatable("options.graphics.tooltip"))
+                                .setDefaultValue(net.minecraft.client.GraphicsPreset.FANCY)
+                                .setElementNameProvider(value -> Component.translatable("options.graphics." + value.getSerializedName()))
+                                .setBinding(value -> {
+                                    value.apply(Minecraft.getInstance());
+                                }, () -> this.vanillaOpts.graphicsPreset().get())
+                                .setImpact(OptionImpact.VARIES)
+                )
+                .addOption(
                         builder.createBooleanOption(Identifier.parse("vulkanium:quality.graphics"))
                                 .setStorageHandler(this.vanillaStorage)
                                 .setName(Component.translatable("options.improvedTransparency"))
@@ -624,6 +636,19 @@ public class VulkaniumConfigBuilder implements ConfigEntryPoint {
         advancedPage.addOptionGroup(builder.createOptionGroup()
                 .addOption(
                         builder.createIntegerOption(Identifier.parse("vulkanium:advanced.cpu_render_ahead_limit"))
+                                .setStorageHandler(this.vulkaniumStorage)
+                                .setName(Component.translatable("vulkanium.options.cpu_render_ahead_limit.name"))
+                                .setValueFormatter(ControlValueFormatterImpls.translateVariable("vulkanium.options.cpu_render_ahead_limit.value"))
+                                .setTooltip(Component.translatable("vulkanium.options.cpu_render_ahead_limit.tooltip"))
+                                .setRange(0, 9, 1)
+                                .setDefaultValue(DEFAULTS.advanced.cpuRenderAheadLimit)
+                                .setBinding(value -> this.vulkaniumOpts.advanced.cpuRenderAheadLimit = value, () -> this.vulkaniumOpts.advanced.cpuRenderAheadLimit)
+                )
+        );
+        return advancedPage;
+    }
+
+}.cpu_render_ahead_limit"))
                                 .setStorageHandler(this.vulkaniumStorage)
                                 .setName(Component.translatable("vulkanium.options.cpu_render_ahead_limit.name"))
                                 .setValueFormatter(ControlValueFormatterImpls.translateVariable("vulkanium.options.cpu_render_ahead_limit.value"))
