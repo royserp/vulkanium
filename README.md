@@ -79,7 +79,7 @@ Without Sodium, Vulkanium would not exist.
 
 ### Requirements
 
-- ☕ OpenJDK 21 *(recommended for compatibility)*
+- ☕ OpenJDK 25 *(recommended for compatibility)*
 - 🧰 Gradle 8.x
 
 > ⚠️ Newer versions (Java 25 / Gradle 9+) may break compatibility with Minecraft modding toolchains.

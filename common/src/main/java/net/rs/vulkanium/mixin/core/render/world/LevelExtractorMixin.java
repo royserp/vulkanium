@@ -28,9 +28,22 @@ public class LevelExtractorMixin {
     @Unique
     private VulkaniumWorldRenderer renderer;
 
+    @Unique
+    private Camera lastCamera;
+
     @Inject(method = "<init>", at = @At("RETURN"))
     private void postInit(Minecraft minecraft, LevelRenderState levelRenderState, LevelRenderer levelRenderer, CallbackInfo ci) {
         this.renderer = ((LevelRendererExtension) (Object) levelRenderer).vulkanium$getWorldRenderer();
+    }
+
+    @Inject(method = "extract", at = @At("HEAD"))
+    private void onExtract(DeltaTracker deltaTracker, Camera camera, float deltaPartialTick, CallbackInfo ci) {
+        this.lastCamera = camera;
+
+        var frustum = camera.getCullFrustum();
+        var viewport = frustum != null ? ((net.rs.vulkanium.client.render.viewport.ViewportProvider) frustum).vulkanium$createViewport() : null;
+
+        this.renderer.onExtract(camera, viewport, ((net.rs.vulkanium.client.util.FogStorage) Minecraft.getInstance().gameRenderer).vulkanium$getFogParameters(), net.rs.vulkanium.client.util.FlawlessFrames.isActive());
     }
 
     @Inject(method = "setLevel", at = @At("RETURN"))
@@ -48,23 +61,8 @@ public class LevelExtractorMixin {
             throw new IllegalStateException("applyFrustum called from wrong thread: " + Thread.currentThread().getName());
         }
 
-        // Camera is not directly on gameRenderer. We don't have spectator info readily available from inside applyFrustum.
-        // Actually, we can get camera via blockEntityRenderDispatcher.camera or entityRenderDispatcher.camera
-        var camera = Minecraft.getInstance().getEntityRenderDispatcher().camera;
         var viewport = ((net.rs.vulkanium.client.render.viewport.ViewportProvider) frustum).vulkanium$createViewport();
-        var updateChunksImmediately = net.rs.vulkanium.client.util.FlawlessFrames.isActive();
-
-        int sectionX = net.minecraft.core.SectionPos.posToSectionCoord(camera.position().x());
-        int sectionY = net.minecraft.core.SectionPos.posToSectionCoord(camera.position().y());
-        int sectionZ = net.minecraft.core.SectionPos.posToSectionCoord(camera.position().z());
-
-        var levelRenderer = Minecraft.getInstance().levelRenderer;
-        var ext = (LevelRendererExtension) levelRenderer;
-
-        // Note: The world border invalidation is technically lost here if lastCameraSection variables aren't accessible.
-        // It should ideally be kept, but for compilation/removal of cullTerrain we bypass it for now.
-
-        this.renderer.setupTerrain(camera, viewport, ((net.rs.vulkanium.client.util.FogStorage) Minecraft.getInstance().gameRenderer).vulkanium$getFogParameters(), false, updateChunksImmediately, ext.vulkanium$getMatrices());
+        this.renderer.updateViewport(viewport);
     }
     
     /**

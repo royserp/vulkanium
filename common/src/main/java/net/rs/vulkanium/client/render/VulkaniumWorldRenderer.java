@@ -83,7 +83,7 @@ public class VulkaniumWorldRenderer {
         }
     }
 
-    public void setupTerrain(Camera camera, Viewport viewport, FogParameters fogParameters, boolean spectator, boolean updateChunksImmediately, ChunkRenderMatrices matrices) {
+    public void onExtract(Camera camera, Viewport viewport, FogParameters fogParameters, boolean updateChunksImmediately) {
         this.lastFogParameters = fogParameters;
 
         this.processChunkEvents();
@@ -91,19 +91,25 @@ public class VulkaniumWorldRenderer {
         if (this.renderDistance != this.client.options.getEffectiveRenderDistance()) {
             this.reload();
         }
-        
+
         this.renderSectionManager.updateChunks(updateChunksImmediately);
-        
-        this.renderSectionManager.finalizeRenderLists(viewport);
+
+        if (viewport != null) {
+            this.renderSectionManager.finalizeRenderLists(viewport);
+        }
 
         var profiler = Profiler.get();
-        profiler.popPush("chunk_render_tick");
+        profiler.push("chunk_render_tick");
 
         this.renderSectionManager.tickVisibleRenders();
 
         profiler.pop();
 
         Entity.setViewScale(Mth.clamp((double) this.client.options.getEffectiveRenderDistance() / 8.0D, 1.0D, 2.5D) * this.client.options.entityDistanceScaling().get());
+    }
+
+    public void updateViewport(Viewport viewport) {
+        this.renderSectionManager.finalizeRenderLists(viewport);
     }
 
     private void processChunkEvents() {

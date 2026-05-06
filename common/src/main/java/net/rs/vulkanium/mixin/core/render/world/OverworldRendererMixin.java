@@ -36,6 +36,12 @@ public abstract class OverworldRendererMixin implements LevelRendererExtension {
     @Unique
     private static final EnumMap<ChunkSectionLayer, Int2ObjectOpenHashMap<List<RenderPass.Draw<GpuBufferSlice[]>>>> STATIC_MAP = new EnumMap<>(ChunkSectionLayer.class);
 
+    static {
+        for (var layer : ChunkSectionLayer.values()) {
+            STATIC_MAP.put(layer, new Int2ObjectOpenHashMap<>());
+        }
+    }
+
     @Unique
     private VulkaniumWorldRenderer renderer;
 
@@ -64,7 +70,7 @@ public abstract class OverworldRendererMixin implements LevelRendererExtension {
         ChunkSectionsToRender chunkSectionsToRender = new ChunkSectionsToRender(minecraft.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).getTextureView(), STATIC_MAP, -1, new GpuBufferSlice[0]);
         
         // We use the last camera position for culling/sorting
-        var camera = minecraft.getEntityRenderDispatcher().camera;
+        var camera = minecraft.gameRenderer.mainCamera();
         ((VulkaniumChunkSection) (Object) chunkSectionsToRender).vulkanium$setRendering(renderer, matrices, camera.position().x(), camera.position().y(), camera.position().z());
         
         return chunkSectionsToRender;
