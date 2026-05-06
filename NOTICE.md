@@ -25,11 +25,11 @@ A series of critical Mixin transformation errors and runtime service errors were
 ## Rebranding and Finalization
 
 *   **Final Package Name**: The entire project's source code was migrated to the final package: **`net.rs.vulkanium`**.
-*   **Simplified Artifact Name**: The build produces a clean JAR filename: **`vulkanium.mc-0.8.4.jar`**.
+*   **Simplified Artifact Name**: The build produces a clean JAR filename: **`vulkanium.mc-0.8.5.jar`**.
 *   **Anonymization**: Removed all previous developer identifiers and attributed the project to `roy_serpant` / `theroyalserpant`.
 
 ## Final Status
 
 *   **Build**: `BUILD SUCCESSFUL`
 *   **Result**: All launch crashes resolved, and terrain rendering restored. 
-*   **Final JAR**: `build/mods/vulkanium.mc-0.8.4.jar`
+*   **Final JAR**: `build/mods/vulkanium.mc-0.8.5.jar`
