@@ -18,7 +18,7 @@
 - 🛠️ Engine-level rendering optimizations
 - 🎮 Better performance on low-end and mid-range systems
 - 🔬 Experimental rendering enhancements (ongoing)
-- 🔥 Future Vulkan-based rendering exploration *(planned)*
+- 🔥 Vulkan-based rendering *(launched)*
 
 ---
 
@@ -79,10 +79,9 @@ Without Sodium, Vulkanium would not exist.
 
 ### Requirements
 
-- ☕ OpenJDK 25 *(recommended for compatibility)*
-- 🧰 Gradle 8.x
+- ☕ OpenJDK 25 *(26.X REQUIRES JDK25+ COMPULSORY)*
+- 🧰 Gradle 9.4.1 
 
-> ⚠️ Newer versions (Java 25 / Gradle 9+) may break compatibility with Minecraft modding toolchains.
 
 ### Build Instructions
 
@@ -185,4 +184,4 @@ If you contribute or modify Vulkanium:
 
 ## 💬 Community
 
--Not Yet Available
+- Not Yet Available

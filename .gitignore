@@ -32,6 +32,7 @@ neoforge/runs
 
 # Kotlin compiler working directory
 .kotlin
+prog1.cpp
 
 # Ignore unnecessary source code
 src_mc26.2_snap5/
