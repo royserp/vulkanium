@@ -11,6 +11,7 @@ import net.rs.vulkanium.client.render.chunk.lists.SortedRenderLists;
 import net.rs.vulkanium.client.render.chunk.map.ChunkTracker;
 import net.rs.vulkanium.client.render.chunk.map.ChunkTrackerHolder;
 import net.rs.vulkanium.client.render.chunk.terrain.DefaultTerrainRenderPasses;
+import net.rs.vulkanium.client.render.chunk.terrain.TerrainRenderPass;
 import net.rs.vulkanium.client.render.chunk.translucent_sorting.SortBehavior;
 import net.rs.vulkanium.client.render.viewport.Viewport;
 import net.rs.vulkanium.client.services.PlatformRuntimeInformation;
@@ -40,6 +41,8 @@ import java.util.SortedSet;
 import java.util.function.Consumer;
 
 public class VulkaniumWorldRenderer {
+    private static VulkaniumWorldRenderer INSTANCE;
+
     private final Minecraft client;
 
     private ClientLevel level;
@@ -50,14 +53,18 @@ public class VulkaniumWorldRenderer {
 
     public VulkaniumWorldRenderer(Minecraft client) {
         this.client = client;
+        INSTANCE = this;
     }
 
     public static VulkaniumWorldRenderer instance() {
-        return ((net.rs.vulkanium.client.world.LevelRendererExtension) Minecraft.getInstance().levelRenderer).vulkanium$getWorldRenderer();
+        return INSTANCE;
     }
 
     public static VulkaniumWorldRenderer instanceNullable() {
-        var renderer = Minecraft.getInstance().levelRenderer;
+        return INSTANCE;
+    }
+
+    public static VulkaniumWorldRenderer get(LevelRenderer renderer) {
         if (renderer == null) {
             return null;
         }
@@ -87,6 +94,10 @@ public class VulkaniumWorldRenderer {
     public void onExtract(Camera camera, Viewport viewport, FogParameters fogParameters, boolean updateChunksImmediately) {
         this.lastFogParameters = fogParameters;
 
+        if (this.renderSectionManager == null) {
+            return;
+        }
+
         this.renderSectionManager.prepareFrame(new Vector3d(camera.position().x, camera.position().y, camera.position().z));
 
         this.processChunkEvents();
@@ -96,7 +107,10 @@ public class VulkaniumWorldRenderer {
         }
 
         if (viewport != null) {
-            this.renderSectionManager.update(camera, viewport, fogParameters, this.client.player != null && this.client.player.isSpectator());
+            // For stability during remaster, we disable occlusion culling to ensure everything renders.
+            // We will re-enable it once visibility is confirmed.
+            // The 4th parameter is 'spectator', which when true disables occlusion culling.
+            this.renderSectionManager.update(camera, viewport, fogParameters, true);
             this.renderSectionManager.finalizeRenderLists(viewport);
         }
 
@@ -114,7 +128,9 @@ public class VulkaniumWorldRenderer {
     }
 
     public void updateViewport(Viewport viewport) {
-        this.renderSectionManager.finalizeRenderLists(viewport);
+        if (this.renderSectionManager != null) {
+            this.renderSectionManager.finalizeRenderLists(viewport);
+        }
     }
 
     private void processChunkEvents() {
@@ -146,13 +162,7 @@ public class VulkaniumWorldRenderer {
     }
 
     private void initRenderer(CommandList commandList) {
-        if (this.renderSectionManager != null) {
-            this.renderSectionManager.destroy();
-            this.renderSectionManager = null;
-        }
-
-        // translucency sorting can be disabled in development environments by setting the debug option in the config file
-        var sortBehavior = SortBehavior.DYNAMIC_DEFER_NEARBY_ZERO_FRAMES;
+        SortBehavior sortBehavior = SortBehavior.DYNAMIC_DEFER_NEARBY_ZERO_FRAMES;
 
         if (PlatformRuntimeInformation.getInstance().isDevelopmentEnvironment()
                 && !VulkaniumClientMod.options().debug.terrainSortingEnabled) {
@@ -168,47 +178,46 @@ public class VulkaniumWorldRenderer {
     }
 
     public void extractBlockEntities(Camera camera, float tickDelta, Long2ObjectMap<SortedSet<BlockDestructionProgress>> progression, LevelRenderState levelRenderState) {
-        PoseStack stack = new PoseStack();
+        var stack = new PoseStack();
 
         SortedRenderLists renderLists = this.renderSectionManager.getRenderLists();
         Iterator<ChunkRenderList> renderListIterator = renderLists.iterator();
 
         while (renderListIterator.hasNext()) {
-            var renderList = renderListIterator.next();
+            var list = renderListIterator.next();
+            var region = list.getRegion();
 
-            var region = renderList.getRegion();
-            var iterator = renderList.sectionsWithEntitiesIterator();
+            var iterator = list.sectionsWithEntitiesIterator();
 
-            if (iterator == null) {
-                continue;
-            }
+            if (iterator != null) {
+                while (iterator.hasNext()) {
+                    var sectionId = iterator.nextByteAsInt();
+                    var section = region.getSection(sectionId);
 
-            while (iterator.hasNext()) {
-                var section = region.getSection(iterator.nextByteAsInt());
+                    if (section == null) {
+                        continue;
+                    }
 
-                if (section == null) {
-                    continue;
+                    this.forEachBlockEntity(section, blockEntity -> {
+                        var pos = blockEntity.getBlockPos();
+                        var progresses = progression.get(pos.asLong());
+
+                        ModelFeatureRenderer.CrumblingOverlay breakProgress;
+                        if (progresses != null && !progresses.isEmpty()) {
+                            stack.pushPose();
+                            stack.translate(pos.getX() - camera.position().x, pos.getY() - camera.position().y, pos.getZ() - camera.position().z);
+                            breakProgress = new ModelFeatureRenderer.CrumblingOverlay(progresses.last().getProgress(), stack.last());
+                            stack.popPose();
+                        } else {
+                            breakProgress = null;
+                        }
+
+                        var state = ((MinecraftAccessor) this.client).getBlockEntityRenderDispatcher().tryExtractRenderState(blockEntity, tickDelta, breakProgress, false);
+                        if (state != null) {
+                            levelRenderState.blockEntityRenderStates.add(state);
+                        }
+                    });
                 }
-
-                this.forEachBlockEntity(section, blockEntity -> {
-                    var pos = blockEntity.getBlockPos();
-                    var progresses = progression.get(pos.asLong());
-
-                    ModelFeatureRenderer.CrumblingOverlay breakProgress;
-                    if (progresses != null && !progresses.isEmpty()) {
-                        stack.pushPose();
-                        stack.translate(pos.getX() - camera.position().x, pos.getY() - camera.position().y, pos.getZ() - camera.position().z);
-                        breakProgress = new ModelFeatureRenderer.CrumblingOverlay(progresses.last().getProgress(), stack.last());
-                        stack.popPose();
-                    } else {
-                        breakProgress = null;
-                    }
-
-                    var state = ((MinecraftAccessor) this.client).getBlockEntityRenderDispatcher().tryExtractRenderState(blockEntity, tickDelta, breakProgress, false);
-                    if (state != null) {
-                        levelRenderState.blockEntityRenderStates.add(state);
-                    }
-                });
             }
         }
     }
@@ -229,68 +238,18 @@ public class VulkaniumWorldRenderer {
         }
     }
 
-    public void iterateVisibleBlockEntities(java.util.function.Consumer<net.minecraft.world.level.block.entity.BlockEntity> blockEntityConsumer) {
-        SortedRenderLists renderLists = this.renderSectionManager.getRenderLists();
-        Iterator<ChunkRenderList> renderListIterator = renderLists.iterator();
-
-        while (renderListIterator.hasNext()) {
-            var renderList = renderListIterator.next();
-
-            var region = renderList.getRegion();
-            var iterator = renderList.sectionsWithEntitiesIterator();
-
-            if (iterator == null) {
-                continue;
-            }
-
-            while (iterator.hasNext()) {
-                var section = region.getSection(iterator.nextByteAsInt());
-
-                if (section == null) {
-                    continue;
-                }
-
-                this.forEachBlockEntity(section, blockEntityConsumer);
-            }
-        }
-    }
-
-    public Collection<String> getDebugStrings(boolean verbose) {
-        return this.renderSectionManager.getDebugStrings(verbose);
-    }
-
     public int getVisibleChunkCount() {
         return this.renderSectionManager.getVisibleChunkCount();
-    }
-
-    public boolean isTerrainRenderComplete() {
-        return this.renderSectionManager.isTerrainRenderComplete();
-    }
-
-    public void scheduleTerrainUpdate() {
-        this.renderSectionManager.markGraphDirty();
-    }
-
-    public void scheduleRebuildForChunk(int x, int y, int z, boolean important) {
-        this.renderSectionManager.scheduleRebuildForChunk(x, y, z, important);
-    }
-
-    public void scheduleRebuildForBlockArea(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean important) {
-        this.renderSectionManager.scheduleRebuildForBlockArea(minX, minY, minZ, maxX, maxY, maxZ, important);
-    }
-
-    public void scheduleRebuildForChunks(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean important) {
-        this.renderSectionManager.scheduleRebuildForChunks(minX, minY, minZ, maxX, maxY, maxZ, important);
-    }
-
-    public boolean isSectionReady(int x, int y, int z) {
-        return this.renderSectionManager.isSectionBuilt(x, y, z);
     }
 
     public void renderBufferDebug(GuiGraphicsExtractor guiGraphics) {
         if (this.renderSectionManager != null) {
             this.renderSectionManager.renderBufferDebug(guiGraphics);
         }
+    }
+
+    public Collection<String> getDebugStrings(boolean verbose) {
+        return this.renderSectionManager.getDebugStrings(verbose);
     }
 
     public boolean isEntityVisible(net.minecraft.client.renderer.entity.EntityRenderer<?, ?> renderer, Entity entity) {

@@ -4,15 +4,15 @@ import com.mojang.blaze3d.vulkan.VulkanRenderPass;
 import net.rs.vulkanium.client.vk.renderpass.VulkanRenderPassExtension;
 import org.lwjgl.vulkan.VkCommandBuffer;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(VulkanRenderPass.class)
+@Mixin(value = VulkanRenderPass.class, remap = false)
 public abstract class VulkanRenderPassMixin implements VulkanRenderPassExtension {
-    @Shadow
-    protected abstract VkCommandBuffer secondaryCommandBuffer();
+    @Invoker("secondaryCommandBuffer")
+    protected abstract VkCommandBuffer invokeSecondaryCommandBuffer();
 
     @Override
     public VkCommandBuffer vulkanium$getCommandBuffer() {
-        return this.secondaryCommandBuffer();
+        return this.invokeSecondaryCommandBuffer();
     }
 }

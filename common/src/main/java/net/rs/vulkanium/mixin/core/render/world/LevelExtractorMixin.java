@@ -1,11 +1,13 @@
 package net.rs.vulkanium.mixin.core.render.world;
 
 import net.rs.vulkanium.client.render.VulkaniumWorldRenderer;
+import net.rs.vulkanium.client.render.viewport.ViewportProvider;
+import net.rs.vulkanium.client.util.FlawlessFrames;
+import net.rs.vulkanium.client.util.FogStorage;
 import net.rs.vulkanium.client.world.LevelRendererExtension;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.extract.LevelExtractor;
@@ -16,8 +18,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LevelExtractor.class)
@@ -40,15 +40,22 @@ public class LevelExtractorMixin {
     private void onExtract(DeltaTracker deltaTracker, Camera camera, float deltaPartialTick, CallbackInfo ci) {
         this.lastCamera = camera;
 
-        var frustum = camera.getCullFrustum();
-        var viewport = frustum != null ? ((net.rs.vulkanium.client.render.viewport.ViewportProvider) frustum).vulkanium$createViewport() : null;
+        if (this.level != null) {
+            var frustum = camera.getCullFrustum();
+            var viewport = frustum != null ? ((ViewportProvider) frustum).vulkanium$createViewport() : null;
 
-        this.renderer.onExtract(camera, viewport, ((net.rs.vulkanium.client.util.FogStorage) Minecraft.getInstance().gameRenderer).vulkanium$getFogParameters(), net.rs.vulkanium.client.util.FlawlessFrames.isActive());
+            this.renderer.onExtract(camera, viewport, ((FogStorage) Minecraft.getInstance().gameRenderer).vulkanium$getFogParameters(), FlawlessFrames.isActive());
+        }
     }
 
     @Inject(method = "setLevel", at = @At("RETURN"))
     private void onLevelChanged(ClientLevel level, CallbackInfo ci) {
         this.renderer.setLevel(level);
+    }
+
+    @Inject(method = "allChanged", at = @At("RETURN"))
+    private void onAllSectionsChanged(CallbackInfo ci) {
+        this.renderer.reload();
     }
 
     /**
@@ -61,49 +68,8 @@ public class LevelExtractorMixin {
             throw new IllegalStateException("applyFrustum called from wrong thread: " + Thread.currentThread().getName());
         }
 
-        var viewport = ((net.rs.vulkanium.client.render.viewport.ViewportProvider) frustum).vulkanium$createViewport();
+        var viewport = ((ViewportProvider) frustum).vulkanium$createViewport();
         this.renderer.updateViewport(viewport);
-    }
-    
-    /**
-     * @reason Redirect chunk updates to our renderer
-     * @author JellySquid
-     */
-    @Overwrite
-    public void setBlocksDirty(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        this.renderer.scheduleRebuildForBlockArea(minX, minY, minZ, maxX, maxY, maxZ, false);
-    }
-
-    /**
-     * @reason Redirect chunk updates to our renderer
-     * @author JellySquid
-     */
-    @Overwrite
-    public void setSectionDirtyWithNeighbors(int x, int y, int z) {
-        this.renderer.scheduleRebuildForChunks(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1, false);
-    }
-    
-    /**
-     * @reason Redirect chunk updates to our renderer
-     * @author JellySquid
-     */
-    @Overwrite
-    private void setBlockDirty(BlockPos pos, boolean important) {
-        this.renderer.scheduleRebuildForBlockArea(pos.getX() - 1, pos.getY() - 1, pos.getZ() - 1, pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1, important);
-    }
-    
-    /**
-     * @reason Redirect chunk updates to our renderer
-     * @author JellySquid
-     */
-    @Overwrite
-    private void setSectionDirty(int x, int y, int z, boolean important) {
-        this.renderer.scheduleRebuildForChunk(x, y, z, important);
-    }
-    
-    @Inject(method = "allChanged", at = @At("RETURN"))
-    private void onReload(CallbackInfo ci) {
-        this.renderer.reload();
     }
 
     /**

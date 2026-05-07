@@ -60,8 +60,8 @@ public class DefaultShaderInterface implements ChunkShaderInterface {
         double subTexelOffset = 1.0f / CompactChunkVertex.TEXTURE_MAX_VALUE;
 
 
-        this.projectionMatrix.getTransposedToAddress(src + 80);
-        this.modelViewMatrix.getTransposedToAddress(src + 16);
+        this.projectionMatrix.getToAddress(src + 80);
+        this.modelViewMatrix.getToAddress(src + 16);
         this.regionOffset.getToAddress(src);
         MemoryUtil.memPutFloat(src + 144, (float) (subTexelOffset - (((1.0D / textureAtlas.getWidth()) / subTexelPrecision))));
         MemoryUtil.memPutFloat(src + 148, (float) (subTexelOffset - (((1.0D / textureAtlas.getHeight()) / subTexelPrecision))));

@@ -27,6 +27,7 @@ import net.rs.vulkanium.client.vk.device.MultiDrawBatch;
 import net.rs.vulkanium.client.vk.device.RenderDevice;
 import net.rs.vulkanium.client.vk.renderpass.VulkanRenderPass;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.data.AtlasIds;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK13;
@@ -302,7 +303,7 @@ public class DefaultChunkRenderer extends ShaderChunkRenderer {
                 VkWriteDescriptorSet.Buffer buf = VkWriteDescriptorSet.calloc(2, stack);
                 buf.sType$Default().dstSet(0).dstBinding(0).descriptorCount(1).descriptorType(VK13.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER).dstArrayElement(0);
                 buf.pImageInfo(VkDescriptorImageInfo.calloc(1, stack)
-                        .imageView(Blaze3DAccess.getView(Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getTextureView()))
+                        .imageView(Blaze3DAccess.getView(Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS).getTextureView()))
                         .imageLayout(VK13.VK_IMAGE_LAYOUT_GENERAL)
                         .sampler(Blaze3DAccess.getSampler(RenderSystem.getSamplerCache().getSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE, FilterMode.NEAREST, FilterMode.NEAREST, true)))
                 );

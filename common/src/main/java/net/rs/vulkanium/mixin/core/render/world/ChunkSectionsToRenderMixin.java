@@ -53,17 +53,22 @@ public abstract class ChunkSectionsToRenderMixin implements VulkaniumChunkSectio
 
         RenderTarget renderTarget = group.outputTarget();
 
+        // Create a native render pass to integrate with Blaze3D's command buffer management.
+        // This ensures barriers and layout transitions are handled correctly.
         try (RenderPass renderPass = RenderSystem.getDevice()
                 .createCommandEncoder()
                 .createRenderPass(
-                        () -> "Section layers for " + group.label(),
+                        () -> "Vulkanium Terrain (" + group.label() + ")",
                         renderTarget.getColorTextureView(),
                         OptionalInt.empty(),
                         renderTarget.getDepthTextureView(),
                         OptionalDouble.empty()
                 )) {
             
-            VkCommandBuffer commandBuffer = ((VulkanRenderPassExtension) ((RenderPassAccessor) renderPass).getBackend()).vulkanium$getCommandBuffer();
+            // Obtain the secondary command buffer from the backend and record our draw calls.
+            var backend = ((RenderPassAccessor) renderPass).getBackend();
+            VkCommandBuffer commandBuffer = ((VulkanRenderPassExtension) backend).vulkanium$getCommandBuffer();
+            
             this.renderer.drawChunkLayer(group, this.matrices, this.x, this.y, this.z, sampler, commandBuffer);
         }
     }

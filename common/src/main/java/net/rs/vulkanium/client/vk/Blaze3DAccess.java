@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vulkan.VulkanCommandEncoder;
 import com.mojang.blaze3d.vulkan.VulkanDevice;
 import com.mojang.blaze3d.vulkan.VulkanGpuSampler;
 import com.mojang.blaze3d.vulkan.VulkanGpuTextureView;
+import net.rs.vulkanium.client.vk.encoder.VulkanCommandEncoderExtension;
 import net.rs.vulkanium.mixin.core.GpuDeviceAccessor;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.vulkan.VkCommandBuffer;
@@ -18,7 +19,7 @@ public class Blaze3DAccess {
 
     public static VkCommandBuffer getCleanCommandBuffer() {
         VulkanCommandEncoder encoder = getVulkanDevice().createCommandEncoder();
-        return encoder.allocateTransientCommandBuffer(true);
+        return ((VulkanCommandEncoderExtension) encoder).vulkanium$getCommandBuffer();
     }
 
     public static int getSubTexelBits() {

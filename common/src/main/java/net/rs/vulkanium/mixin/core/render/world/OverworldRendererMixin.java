@@ -8,20 +8,22 @@ import net.rs.vulkanium.client.util.GameRendererStorage;
 import net.rs.vulkanium.client.util.VulkaniumChunkSection;
 import net.rs.vulkanium.client.world.LevelRendererExtension;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.ShaderManager;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.sprite.AtlasManager;
+import net.minecraft.client.renderer.ShaderManager;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,6 +35,9 @@ import java.util.List;
 
 @Mixin(LevelRenderer.class)
 public abstract class OverworldRendererMixin implements LevelRendererExtension {
+    @Shadow
+    private LevelRenderState levelRenderState;
+
     @Unique
     private static final EnumMap<ChunkSectionLayer, Int2ObjectOpenHashMap<List<RenderPass.Draw<GpuBufferSlice[]>>>> STATIC_MAP = new EnumMap<>(ChunkSectionLayer.class);
 
@@ -69,9 +74,9 @@ public abstract class OverworldRendererMixin implements LevelRendererExtension {
         
         ChunkSectionsToRender chunkSectionsToRender = new ChunkSectionsToRender(minecraft.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).getTextureView(), STATIC_MAP, -1, new GpuBufferSlice[0]);
         
-        // We use the last camera position for culling/sorting
-        var camera = minecraft.gameRenderer.mainCamera();
-        ((VulkaniumChunkSection) (Object) chunkSectionsToRender).vulkanium$setRendering(renderer, matrices, camera.position().x(), camera.position().y(), camera.position().z());
+        // Use the current camera position from the render state for region calculation
+        var cameraPos = this.levelRenderState.cameraRenderState.pos;
+        ((VulkaniumChunkSection) (Object) chunkSectionsToRender).vulkanium$setRendering(renderer, matrices, cameraPos.x, cameraPos.y, cameraPos.z);
         
         return chunkSectionsToRender;
     }
